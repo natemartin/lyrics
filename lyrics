@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+import json
+import urllib2 as request
+
+
+def search_request(query):
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.168 Safari/535.19'}
+    req = request.Request(url='http://api.genius.com/search?q=%s' % query, headers=headers)
+    r = request.urlopen(req)
+    print r.read().decode('utf-8')
+
+
+def main():
+    import sys
+    search_request(sys.argv[1])
+
+
+if __name__ == "__main__":
+    main()
+
