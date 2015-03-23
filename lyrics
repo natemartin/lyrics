@@ -1,21 +1,64 @@
 #!/usr/bin/python
+# Use: lyrics <query> <terms> <here>
 
 import json
+import sys
 import urllib2 as request
 
+def rg_request(query):
+  """Makes a request to the Rap Genius api.
+
+  Args:
+    query: api route to query.
+
+  Returns:
+    json returned by api.
+  """
+
+  headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) '
+             'AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.168 Safari/535.19'}
+  req = request.Request(url='http://api.genius.com/%s' % query, headers=headers)
+  r = request.urlopen(req)
+  return json.loads(r.read())
 
 def search_request(query):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.168 Safari/535.19'}
-    req = request.Request(url='http://api.genius.com/search?q=%s' % query, headers=headers)
-    r = request.urlopen(req)
-    print r.read().decode('utf-8')
+  """Makes RG search request."""
+  return rg_request('search?q=%s' % '+'.join(query))
 
+def song_request(song_id):
+  """Makes RG song request."""
+  return rg_request('songs/%s' % song_id)
+
+def deep_print_strings(input):
+  """Prints song lyrics from RG json representation.
+
+  RG returns song lyrics embeded in a dictionary with formatting and links.
+  This funciton recursivly prints the lyrics, prints a newline for each line
+  break, and ignores the other stuff.
+  """
+  if isinstance(input, basestring):
+    sys.stdout.write(input)
+  elif type(input) == type(dict()):
+    for v in input.itervalues():
+      if isinstance(v, basestring):
+        if v == 'br':
+          print
+      else:
+        deep_print_strings(v)
+  elif type(input) == type([]):
+    for elem in input:
+      deep_print_strings(elem)
+
+
+def print_lyrics(song_response):
+  root = song_response['response']['song']['lyrics']['dom']['children'][0]['children']
+  deep_print_strings(root)
+  print
 
 def main():
-    import sys
-    search_request(sys.argv[1])
-
+  search_results = search_request(sys.argv[1:])
+  hits = search_results['response']['hits']
+  print_lyrics(song_request(hits[0]['result']['id']))
 
 if __name__ == "__main__":
-    main()
-
+  main()
