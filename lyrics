@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# Use: lyrics <query> <terms> <here>
+# Very simple command line application that prints song lyrics.
+# Use: lyrics <query> <terms> <here> ...
 
 import json
 import sys
@@ -22,11 +23,21 @@ def rg_request(query):
   return json.loads(r.read())
 
 def search_request(query):
-  """Makes RG search request."""
+  """Makes RG search request.
+
+  Returns:
+    json from search req.
+  """
+
   return rg_request('search?q=%s' % '+'.join(query))
 
 def song_request(song_id):
-  """Makes RG song request."""
+  """Makes RG song request.
+
+  Returns:
+    json from song req.
+  """
+
   return rg_request('songs/%s' % song_id)
 
 def deep_print_strings(input):
@@ -36,6 +47,7 @@ def deep_print_strings(input):
   This funciton recursivly prints the lyrics, prints a newline for each line
   break, and ignores the other stuff.
   """
+
   if isinstance(input, basestring):
     sys.stdout.write(input)
   elif type(input) == type(dict()):
@@ -51,6 +63,8 @@ def deep_print_strings(input):
 
 
 def print_lyrics(song_response):
+  """Prints the lyrics of a json song response"""
+
   root = song_response['response']['song']['lyrics']['dom']['children'][0]['children']
   deep_print_strings(root)
   print
@@ -58,6 +72,9 @@ def print_lyrics(song_response):
 def main():
   search_results = search_request(sys.argv[1:])
   hits = search_results['response']['hits']
+  if len(hits) < 1:
+    print "Couldn't find any songs matching your query, sorry!"
+    return
   print_lyrics(song_request(hits[0]['result']['id']))
 
 if __name__ == "__main__":
