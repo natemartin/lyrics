@@ -1,4 +1,4 @@
-# lyrics
+# Lyrics
 Simple command line utility for displaying song lyrics.
 # Usage
 `./lyrics daft punk around the world`
